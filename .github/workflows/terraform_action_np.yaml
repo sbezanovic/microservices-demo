@@ -3,7 +3,7 @@ name: GKE Cluster Creation NP
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   terraform:
