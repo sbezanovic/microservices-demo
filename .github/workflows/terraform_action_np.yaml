@@ -22,7 +22,7 @@ jobs:
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: '${{ secrets.GD_GCP_GRIDU_DEVOPS_T1_T2 }}'
+          credentials_json: ${{ secrets.GD_GCP_GRIDU_DEVOPS_T1_T2 }}
 
       - name: Initialize Terraform
         run: terraform -chdir=${{ secrets.TF_DIR_NP }} init -reconfigure
