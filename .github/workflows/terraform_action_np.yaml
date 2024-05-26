@@ -1,0 +1,39 @@
+name: GKE Cluster Creation NP
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.1.0
+
+
+      - name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GD_GCP_GRIDU_DEVOPS_T1_T2 }}'
+
+      - name: Initialize Terraform
+        run: terraform -chdir=${{ secrets.TF_DIR_NP }} init --reconfigure
+
+      - name: Format Terraform Code
+        run: terraform -chdir=${{ secrets.TF_DIR_NP }} fmt
+
+      - name: Terraform Plan
+        run: terraform -chdir=${{ secrets.TF_DIR_NP }} plan
+
+      - name: Apply Terraform
+        run: terraform -chdir=${{ secrets.TF_DIR_NP }} apply -auto-approve
+
+

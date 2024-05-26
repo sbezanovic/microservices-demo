@@ -1,0 +1,112 @@
+name: Helm Action NP
+
+on:
+  workflow_run:
+    workflows: ["GKE Cluster Creation NP"]
+    types:
+      - completed
+    branches:
+      - "*"  # run for all branches
+    tags:
+      - "*"  # run for all tags
+
+jobs:
+  deploy-to-kubernetes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # Authenticate with GCP
+      - name: Set up GCP Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          service_account_key: ${{ secrets.GD_GCP_GRIDU_DEVOPS_T1_T2 }}
+          project_id: ${{ secrets.GCP_PROJECT }}
+
+      # Install gke-gcloud-auth-plugin
+      - name: Install gke-gcloud-auth-plugin
+        run: gcloud components install gke-gcloud-auth-plugin
+
+      # Configure kubectl with GKE credentialss
+      - name: Configure kubectl with GKE credentials
+        run: gcloud container clusters get-credentials ${{ secrets.CLUSTER_NAME_NP }} --zone ${{ secrets.CLUSTER_ZONE }} --project ${{ secrets.GCP_PROJECT }}
+
+      # Set up Kubernetes CLI (kubectl)
+      - name: Set up Kubernetes CLI (kubectl)
+        uses: azure/setup-kubectl@v1
+
+      # Set up Helm
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: '3.13.0'
+
+      # Deploy to Kubernetes
+      - name: Deploy to Kubernetes
+        run: |
+          #!/bin/bash
+
+          cd Terraform/PR
+
+          # Function to handle failure based on specific error message
+          handle_installation_error() {
+              release_name=$1
+              if [[ $? -ne 0 ]]; then
+                  # Capture the error message
+                  error_message=$(helm install $release_name 2>&1)
+
+                  # Check if the error message is about re-using a name
+                  if echo $error_message | grep -q "cannot re-use a name that is still in use"; then
+                      echo "Warning: $release_name is already installed or in use. Continuing..."
+                  else
+                      echo "Error: Installation of $release_name failed. Exiting script."
+                      exit 1
+                  fi
+              fi
+          }
+
+          # Apply sock-shop
+          kubectl apply -f sock-shop.yaml
+
+          # Create namespaces
+          kubectl create namespace loki || true
+          kubectl create namespace tempo || true
+          kubectl create namespace prometheus || true
+          kubectl create namespace otel || true
+
+          # Add helm repos
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+          helm repo update
+
+
+
+          # Install prometheus
+          echo "Installing prometheus..."
+          helm upgrade --install prometheus prometheus-community/prometheus --namespace prometheus || handle_installation_error "prometheus"
+
+          # Install tempo
+          echo "Installing tempo..."
+          helm -n tempo upgrade --install tempo grafana/tempo-distributed -f tempo_values.yaml || handle_installation_error "tempo"
+
+          # Install loki
+          echo "Installing loki..."
+          helm upgrade --install --namespace loki logging grafana/loki -f loki_values.yaml --set loki.auth_enabled=false || handle_installation_error "loki"
+
+          # Install Grafana
+          echo "Installing Grafana..."
+          helm upgrade --install --namespace=loki loki-grafana grafana/grafana --set service.type=LoadBalancer || handle_installation_error "grafana"
+
+          # Install otel
+          echo "Installing otel..."
+          helm upgrade --install otel-collector open-telemetry/opentelemetry-collector --namespace otel -f otel_values.yaml || handle_installation_error "otel"
+
+          echo "All installations completed successfully."
+          
+      # Retrieve Grafana admin password from Kubernetes secret
+
+      - name: Get Grafana Admin Password
+        run: kubectl get secret --namespace loki loki-grafana -o jsonpath='{.data.admin-password}' | base64 --decode; echo
+
+

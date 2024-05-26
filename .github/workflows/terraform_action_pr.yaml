@@ -1,0 +1,55 @@
+name: GKE Cluster Creation PR
+
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.1.0
+
+      - name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GD_GCP_GRIDU_DEVOPS_T1_T2 }}'
+
+      - name: Initialize Terraform
+        run: terraform -chdir=${{ secrets.TF_DIR_PR }} init --reconfigure
+
+      - name: Format Terraform Code
+        run: terraform -chdir=${{ secrets.TF_DIR_PR }} fmt
+
+      - name: Terraform Plan
+        run: terraform -chdir=${{ secrets.TF_DIR_PR }} plan -out=tfplan
+
+      # Outputs the plan data for manual review
+      - name: Output Terraform Plan Result
+        run: |
+          echo "Terraform plan output:"
+          terraform -chdir=${{ secrets.TF_DIR_PR }} show  tfplan
+
+      # This step will pause the workflow and wait for a manual approval if it's not the master branch.
+      - name: Wait for Manual Approval
+        if: github.ref == 'refs/heads/master'
+        run: echo "Waiting for manual approval of the Terraform plan."
+
+      # Actual deployment step that applies the Terraform plan
+      - name: Apply Terraform
+        if: github.ref == 'refs/heads/master'
+        run: terraform -chdir=${{ secrets.TF_DIR_PR }} apply -auto-approve tfplan
