@@ -7,6 +7,7 @@ provider "google" {
 # Create a GKE cluster with zero initial nodes
 resource "google_container_cluster" "sbezanovic_cluster_pr" {
   name     = "sbezanovic-cluster-pr"
+  project  = "gd-gcp-gridu-devops-t1-t2"
   location = "europe-west1-b"
   deletion_protection = false
   initial_node_count = 1
@@ -31,5 +32,6 @@ resource "google_container_node_pool" "sbezanovic_autoscaling_node_pool" {
     disk_size_gb = 150
   }
 }
+
 
 
