@@ -7,7 +7,7 @@ provider "google" {
 # Create a GKE cluster with zero initial nodes
 resource "google_container_cluster" "sbezanovic_cluster_pr" {
   name     = "sbezanovic-cluster-pr"
-  location = "us-central1"
+  location = "us-central1-a"
   deletion_protection = false
   initial_node_count = 1
   #remove_default_node_pool = true
