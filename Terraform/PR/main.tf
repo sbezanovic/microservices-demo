@@ -8,8 +8,6 @@ provider "google" {
 resource "google_container_cluster" "sbezanovic_cluster_pr" {
   name     = "sbezanovic-cluster-pr"
   location = "us-central1"
-  zone     = "us-central1-a"  # Specify the desired zone here
-
   deletion_protection = false
   initial_node_count = 1
   #remove_default_node_pool = true
