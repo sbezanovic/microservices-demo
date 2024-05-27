@@ -27,7 +27,7 @@ jobs:
       - name: Initialize Terraform
         run: 
           pwd
-          terraform -chdir=${{ secrets.TF_DIR_NP }} init 
+          terraform -chdir=${{ secrets.TF_DIR_NP }} init -reconfigure
 
       - name: Format Terraform Code
         run: terraform -chdir=${{ secrets.TF_DIR_NP }} fmt
