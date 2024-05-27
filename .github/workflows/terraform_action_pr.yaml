@@ -44,12 +44,6 @@ jobs:
           echo "Terraform plan output:"
           terraform -chdir=${{ secrets.TF_DIR_PR }} show  tfplan
 
-      # This step will pause the workflow and wait for a manual approval if it's not the master branch.
-      - name: Wait for Manual Approval
-        if: github.ref == 'refs/heads/master'
-        run: echo "Waiting for manual approval of the Terraform plan."
-
       # Actual deployment step that applies the Terraform plan
       - name: Apply Terraform
-        if: github.ref == 'refs/heads/master'
         run: terraform -chdir=${{ secrets.TF_DIR_PR }} apply -auto-approve tfplan
