@@ -1,7 +1,7 @@
 # Authenticate with GCP
 provider "google" {
   project     = "gd-gcp-gridu-devops-t1-t2"
-  region      = "us-central1"
+  region      = "us-central1-a"
 }
 
 # Create a GKE cluster with zero initial nodes
