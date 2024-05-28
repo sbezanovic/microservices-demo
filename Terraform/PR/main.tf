@@ -34,6 +34,3 @@ resource "google_container_node_pool" "sbezanovic_autoscaling_node_pool" {
 }
 
 
-
-
-
