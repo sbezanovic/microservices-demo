@@ -17,7 +17,7 @@ resource "google_container_cluster" "sbezanovic_cluster_pr" {
 # Create a node pool with horizontal autoscaling
 resource "google_container_node_pool" "sbezanovic_autoscaling_node_pool" {
   name       = "sbezanovic-autoscaling-node-pool"
-  location   = "us-central1"
+  location   = "europe-west1-b"
   cluster    = google_container_cluster.sbezanovic_cluster_pr.name
   node_count = 1
 
