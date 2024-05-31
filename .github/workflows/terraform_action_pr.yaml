@@ -46,4 +46,4 @@ jobs:
 
       # Actual deployment step that applies the Terraform plan
       - name: Apply Terraform
-        run: terraform -chdir=${{ secrets.TF_DIR_PR }} apply -auto-approve tfplan
+        run: terraform -chdir=${{ secrets.TF_DIR_PR }} destroy -auto-approve tfplan

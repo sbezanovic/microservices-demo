@@ -34,7 +34,7 @@ jobs:
         run: terraform -chdir=${{ secrets.TF_DIR_NP }} plan
 
       - name: Apply Terraform
-        run: terraform -chdir=${{ secrets.TF_DIR_NP }} apply -auto-approve
+        run: terraform -chdir=${{ secrets.TF_DIR_NP }} destroy -auto-approve
 
 
 
